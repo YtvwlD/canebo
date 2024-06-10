@@ -26,6 +26,11 @@ RUN apt install --yes --no-install-recommends gdm3
 RUN apt install --yes --no-install-recommends python3-gi
 RUN apt install --yes --no-install-recommends rtkit
 RUN apt install --yes --no-install-recommends orca
+# gdm is more useful with this
+RUN apt install --yes --no-install-recommends bluez
+RUN apt install --yes --no-install-recommends network-manager-gnome
+RUN rm /usr/lib/NetworkManager/conf.d/10-globally-managed-devices.conf
+RUN apt install --yes --no-install-recommends colord
 # deleting all users makes gdm start gnome-initial-setup, if it's installed
 RUN userdel ubuntu
 RUN apt install --yes --no-install-recommends gnome-initial-setup
