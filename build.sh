@@ -25,3 +25,6 @@ rm build/rootfs/.dockerenv
 # create the initramfs
 cd build/rootfs && find . | fakeroot -i ../fakeroot cpio -o --format=newc | xz -9 --format=xz --check=crc32 - > ../initramfs && cd ..
 rm -rf build/rootfs
+
+# create the efi file
+docker run --rm -ti -v "$(pwd)/build:/build" canebo sh -c "apt install --yes --no-install-recommends systemd-ukify systemd-boot-efi && ukify build --linux=/build/kernel --initrd=/build/initramfs --output=/build/canebo.efi && chown 1000:1000 /build/canebo.efi"
