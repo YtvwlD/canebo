@@ -1,0 +1,7 @@
+[package]
+name = "canebo-uefi"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+uefi = { version = "0.32.0", features = ["alloc", "global_allocator", "panic_handler"] }
