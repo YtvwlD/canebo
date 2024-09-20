@@ -4,5 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+embedded-graphics = "0.8"
+# we need a newer version than 0.6.2, so that the version of embedded-graphics matches
+lvgl = { git = "https://github.com/lvgl/lv_binding_rust.git", rev = "18a7ebffa95e7a6e9ff8a6719069b9010a94ca88", default-features = false, features = ["use-vendored-config", "embedded_graphics", "unsafe_no_autoinit"] }
 uefi = { version = "0.32.0", features = ["alloc", "global_allocator", "panic_handler"] }
 uefi-graphics2 = { version = "0.4" }
