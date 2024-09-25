@@ -1,6 +1,8 @@
 #![no_std]
 #![no_main]
 
+use core::time::Duration;
+
 use embedded_graphics::draw_target::DrawTarget;
 use lvgl::Display;
 use lvgl::DrawBuffer;
@@ -10,37 +12,50 @@ use uefi::Result;
 use uefi::proto::console::gop::GraphicsOutput;
 use uefi_graphics2::UefiDisplay;
 
-fn initialize_graphics() -> Result<Display> {
-    const RES_4K: usize = 3840 * 2160;
+fn initialize_graphics() -> Result<(UefiDisplay, Display)> {
+    const RES_FHD: usize = 1920 * 1080;
 
     // just open the first screen
     let mut gop = open_protocol_exclusive::<GraphicsOutput>(
         find_handles::<GraphicsOutput>()?
-            .into_iter().next().ok_or(Status::UNSUPPORTED)?
+            .into_iter().next().ok_or(Status::UNSUPPORTED)?,
     )?;
     let mode = gop.current_mode_info();
     let (xres, yres) = mode.resolution();
-    assert!(xres * yres < RES_4K);
+    assert!(xres * yres < RES_FHD);
     let buffer = gop.frame_buffer();
-    let mut uefi_display = UefiDisplay::new(buffer, mode)
-            .map_err(|_err| Status::UNSUPPORTED)?;
+    let mut window = UefiDisplay::new(buffer, mode)
+        .map_err(|_err| Status::UNSUPPORTED)?;
     lvgl::init();
     
-    let buffer = DrawBuffer::<RES_4K>::default();
-    Ok(Display::register(
+    let buffer = DrawBuffer::<RES_FHD>::default();
+    let display = Display::register(
         buffer,
         yres.try_into().unwrap(),
         xres.try_into().unwrap(),
-        |refresh| uefi_display.draw_iter(refresh.as_pixels()).unwrap(),
-    ).map_err(|_err| Status::UNSUPPORTED)?)
+        |refresh| window.draw_iter(refresh.as_pixels()).unwrap(),
+    ).map_err(|_err| Status::UNSUPPORTED)?;
+    Ok((window, display))
 }
 
 #[entry]
 fn main() -> Status {
     uefi::helpers::init().expect("failed to initialize the uefi crate");
-
+    
     // initialize the graphics
-    let display = initialize_graphics().expect("failed to initialize graphics");
+    let (mut window, display) = initialize_graphics().expect("failed to initialize graphics");
+    let mut screen = display.get_scr_act().unwrap();
+    // TODO: actually draw something
+    
+    'running: loop {
+        lvgl::task_handler();
+        window.flush();
+
+        // TODO: handle events
+
+        lvgl::tick_inc(Duration::from_secs(1));
+    }
+
 
     Status::SUCCESS
 }
