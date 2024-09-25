@@ -2,7 +2,7 @@
 set -eu
 
 # create and export the rootfs
-cd rootfs && docker build -t canebo . && cd ..
+docker build -t canebo -f Dockerfile.rootfs .
 docker run -d --name canebo canebo
 docker export -o build/rootfs.tar canebo
 docker stop canebo
