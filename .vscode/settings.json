@@ -1,0 +1,5 @@
+{
+    "rust-analyzer.linkedProjects": [
+        "rootfs/canebo-ui/Cargo.toml"
+    ]
+}
